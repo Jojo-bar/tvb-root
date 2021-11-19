@@ -69,7 +69,6 @@ from tvb.interfaces.web.controllers.decorators import expose_fragment, handle_er
 from tvb.interfaces.web.controllers.decorators import expose_page, settings, context_selected, expose_numpy_array
 from tvb.interfaces.web.controllers.simulator.simulator_controller import SimulatorController
 from tvb.interfaces.web.entities.context_selected_adapter import SelectedAdapterContext
-from tvb.adapters.creators.local_connectivity_creator import LocalConnectivityCreatorModel, KEY_LCONN
 from tvb.adapters.creators.pipeline_creator import IPPipelineCreatorModel, KEY_PIPELINE
 
 KEY_CONTENT = ABCDisplayer.KEY_CONTENT
@@ -146,8 +145,7 @@ class FlowController(BaseController):
         template_specification = dict(mainContent="header_menu", section_name='connectivity', controlPage=None,
                                       title="Select an algorithm", displayControl=False, subsection_name='step',
                                       submenu_list=self.connectivity_submenu)
-        common.add2session(KEY_LCONN, LocalConnectivityCreatorModel)
-        common.add2session(KEY_PIPELINE, IPPipelineCreatorModel)
+        self.context.add_view_model_to_session(IPPipelineCreatorModel())
         return self.fill_default_attributes(template_specification)
 
     @staticmethod
@@ -684,7 +682,7 @@ class FlowController(BaseController):
     def refresh_subform(self, data_name, subform_label, spatial_model_key):
         data_class = TVBEnum.string_to_enum(self.enum_members, data_name).value
 
-        spatial_model = common.get_from_session(spatial_model_key)
+        spatial_model = self.context.get_view_model_from_session()
         equation_info = spatial_model.get_equation_information()
         setattr(spatial_model, equation_info[subform_label], data_class())
 

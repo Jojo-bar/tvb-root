@@ -27,26 +27,18 @@
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
-from tvb.core.neotraits.h5 import H5File, Scalar, Reference, SparseMatrix, ScalarWithParameters
-from tvb.datatypes.local_connectivity import LocalConnectivity
+
+"""
+.. moduleauthor:: Robert Vincze <robert.vincze@codemart.ro>
+"""
+from tvb.basic.neotraits.api import HasTraits, Attr
 
 
-class LocalConnectivityH5(H5File):
-    def __init__(self, path):
-        super(LocalConnectivityH5, self).__init__(path)
-        self.surface = Reference(LocalConnectivity.surface, self)
-        self.matrix = SparseMatrix(LocalConnectivity.matrix, self)
-        self.equation = ScalarWithParameters(LocalConnectivity.equation, self)
-        self.cutoff = Scalar(LocalConnectivity.cutoff, self)
-
-    def store(self, datatype, scalars_only=False, store_references=True):
-        # type: (LocalConnectivity, bool, bool) -> None
-        super(LocalConnectivityH5, self).store(datatype, scalars_only, store_references)
-
-    def load_into(self, datatype):
-        # type: (LocalConnectivity) -> None
-        super(LocalConnectivityH5, self).load_into(datatype)
-
-    def get_min_max_values(self):
-        metadata = self.matrix.get_metadata()
-        return metadata.min, metadata.max
+class TraitsWithParameters(HasTraits):
+    parameters = Attr(
+        field_type=dict,
+        label="Parameters in a dictionary.",
+        default=lambda: {},
+        doc="""Should be a list of the parameters and their meaning, Traits
+                should be able to take defaults and sensible ranges from any
+                traited information that was provided.""")
