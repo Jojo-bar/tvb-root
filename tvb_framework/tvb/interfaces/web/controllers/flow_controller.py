@@ -38,7 +38,6 @@ given action are described here.
 import json
 import sys
 import threading
-
 import cherrypy
 import formencode
 import numpy
@@ -48,7 +47,7 @@ from tvb.adapters.forms.equation_forms import get_form_for_equation
 from tvb.basic.neotraits.api import TVBEnum, SubformEnum
 from tvb.basic.neotraits.ex import TraitValueError
 from tvb.core.adapters import constants
-from tvb.core.adapters.abcadapter import ABCAdapter
+from tvb.core.adapters.abcadapter import ABCAdapter, AdapterLaunchModeEnum
 from tvb.core.adapters.abcdisplayer import ABCDisplayer
 from tvb.core.adapters.exceptions import LaunchException
 from tvb.core.entities.filters.chain import FilterChain
@@ -316,14 +315,19 @@ class FlowController(BaseController):
                     common.set_error_message("Invalid result returned from Displayer! Dictionary is expected!")
                 return {}
 
-            thread = threading.Thread(target=self.operation_services.fire_operation,
-                                      kwargs={'adapter_instance': adapter_instance,
-                                              'current_user': common.get_logged_user(),
-                                              'project_id': project_id,
-                                              'visible': True,
-                                              'view_model': view_model,
-                                              'auth_token': common.get_from_session(common.KEY_AUTH_TOKEN)})
-            thread.start()
+            if adapter_instance.launch_mode == AdapterLaunchModeEnum.SYNC_SAME_MEM:
+                self.operation_services.fire_operation(adapter_instance, common.get_logged_user(), project_id,
+                                                       view_model=view_model,
+                                                       auth_token=common.get_from_session(common.KEY_AUTH_TOKEN))
+            else:
+                thread = threading.Thread(target=self.operation_services.fire_operation,
+                                          kwargs={'adapter_instance': adapter_instance,
+                                                  'current_user': common.get_logged_user(),
+                                                  'project_id': project_id,
+                                                  'view_model': view_model,
+                                                  'auth_token': common.get_from_session(common.KEY_AUTH_TOKEN)})
+                thread.start()
+
             common.set_important_message("Launched an operation.")
 
         except formencode.Invalid as excep:
